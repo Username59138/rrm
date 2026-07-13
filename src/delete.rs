@@ -1,0 +1,147 @@
+use crate::configfile::ConfigFile;
+use crate::configfile::Variables;
+use crate::input::get_yes_no;
+use crate::launcharguments::LaunchConfig;
+use std::error::Error;
+use std::fs;
+use std::path::PathBuf;
+
+fn delete_any(paths: &[PathBuf], verbose: bool) -> Result<(), Box<dyn Error>> {
+    for path in paths {
+        let metadata = path.metadata()?;
+        if metadata.is_dir() {
+            fs::remove_dir(path)?;
+        } else {
+            fs::remove_file(path)?;
+        }
+        if verbose {
+            println!("Removed {}", path.to_str().unwrap_or_default());
+        }
+    }
+    Ok(())
+}
+
+fn check_file(
+    config_file: &ConfigFile,
+    launch_config: &LaunchConfig,
+    file: &PathBuf,
+) -> Option<PathBuf> {
+    let file = file.clone();
+    let include_files: Vec<&str> = launch_config.include.split(',').collect();
+    let exclude_files: Vec<&str> = launch_config.exclude.split(',').collect();
+    let (blacklist, very_blacklist, confirm_list) = if let Some(lists) = &config_file.lists {
+        let blacklist = lists.blacklist_files.clone();
+        let very_blacklist = lists.very_blacklist_files.clone();
+        let confirm_list = lists.confirm_files.clone();
+        (blacklist, very_blacklist, confirm_list)
+    } else {
+        (None, None, None)
+    };
+    let allow_root_deletion = if let Some(variables) = &config_file.variables {
+        variables.allow_root_deletion.clone()
+    } else {
+        None
+    };
+
+    if let Some(confirm_list) = &confirm_list
+        && confirm_list.contains(&file)
+        && !launch_config.no_files_confirm
+    {
+        println!(
+            "Do you want to add {} to delete list? [Y/n]",
+            file.to_str().unwrap_or_default()
+        );
+        let Ok(user_input) = get_yes_no() else {
+            return None;
+        };
+        if !user_input {
+            return None;
+        }
+    }
+
+    if let Some(blacklist) = &blacklist
+        && blacklist.contains(&file)
+        && !include_files.contains(&file.to_str().unwrap_or_default())
+    {
+        return None;
+    }
+    if let Some(very_blacklist) = &very_blacklist
+        && very_blacklist.contains(&file)
+    {
+        return None;
+    }
+    let root_dir = PathBuf::from("/");
+    if let Some(allow_root_deletion) = allow_root_deletion
+        && !allow_root_deletion
+        && (file == root_dir || (file.parent() == Some(&root_dir)))
+    {
+        return None;
+    };
+    if exclude_files.contains(&file.to_str().unwrap_or_default()) {
+        return None;
+    }
+
+    if launch_config.verbose {
+        println!("{} will be deleted", file.to_str().unwrap_or_default());
+    }
+    Some(file)
+}
+
+fn prepare_files_to_delete(
+    config_file: &ConfigFile,
+    launch_config: &LaunchConfig,
+) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    let mut files_to_delete: Vec<PathBuf> = Vec::new();
+
+    for object in launch_config.files_path.clone() {
+        if let Some(file) = check_file(config_file, launch_config, &object)
+            && !object.is_dir()
+        {
+            files_to_delete.push(file)
+        } else if object.is_dir() {
+            let mut dir_files_to_del: Vec<PathBuf> = Vec::new();
+            let filles_in_dir = object.read_dir()?;
+            for file in filles_in_dir {
+                let file = file?;
+                let file = file.path();
+
+                if let Some(file) = check_file(config_file, launch_config, &file) {
+                    dir_files_to_del.push(file);
+                }
+            }
+            if !dir_files_to_del.is_empty() {
+                files_to_delete.extend_from_slice(&dir_files_to_del);
+            } else {
+                files_to_delete.push(object);
+            }
+        }
+    }
+    Ok(files_to_delete)
+}
+
+pub fn start_deletion(
+    config_file: &ConfigFile,
+    launch_config: &LaunchConfig,
+) -> Result<(), Box<dyn Error>> {
+    let files_to_delete = prepare_files_to_delete(config_file, launch_config)?;
+    if matches!(
+        config_file.variables,
+        Some(Variables {
+            confirm_deleting: Some(true),
+            ..
+        })
+    ) && !launch_config.no_confirm
+        || launch_config.confirm
+    {
+        println!(
+            "{} files will be deleted. Continue? [Y/n]",
+            files_to_delete.len()
+        );
+        let user_input = get_yes_no()?;
+        if !user_input {
+            return Ok(());
+        }
+    }
+    delete_any(&files_to_delete, launch_config.verbose)?;
+    Ok(())
+}

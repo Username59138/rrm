@@ -1,0 +1,10 @@
+[package]
+name = "rrm"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+toml = "1.1.2+spec-1.1.0"
+dirs = "6.0.0"
+serde = { version = "1.0.228", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
