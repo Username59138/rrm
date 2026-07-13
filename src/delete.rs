@@ -2,6 +2,7 @@ use crate::configfile::ConfigFile;
 use crate::configfile::Variables;
 use crate::input::get_yes_no;
 use crate::launcharguments::LaunchConfig;
+use std::env;
 use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
@@ -80,7 +81,10 @@ fn check_file(
     {
         return None;
     }
-    let root_dir = PathBuf::from("/");
+    let root_dir = env::current_dir()
+        .ok()
+        .and_then(|path| path.ancestors().last().map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from("/"));
     if let Some(allow_root_deletion) = allow_root_deletion
         && !allow_root_deletion
         && (file == root_dir || (file.parent() == Some(&root_dir)))
@@ -109,19 +113,18 @@ fn prepare_files_to_delete(
         {
             files_to_delete.push(file)
         } else if object.is_dir() {
-            let mut dir_files_to_del: Vec<PathBuf> = Vec::new();
+            let mut save_directory = false;
             let filles_in_dir = object.read_dir()?;
             for file in filles_in_dir {
-                let file = file?;
-                let file = file.path();
+                let file = file?.path();
 
                 if let Some(file) = check_file(config_file, launch_config, &file) {
-                    dir_files_to_del.push(file);
+                    files_to_delete.push(file);
+                } else {
+                    save_directory = true;
                 }
             }
-            if !dir_files_to_del.is_empty() {
-                files_to_delete.extend_from_slice(&dir_files_to_del);
-            } else {
+            if !save_directory {
                 files_to_delete.push(object);
             }
         }
