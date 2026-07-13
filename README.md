@@ -1,5 +1,8 @@
 # rrm - Rust Remove 
-# Remove utility written on rust which has many features.
+`rrm` is advanced remove utility written on rust.
+`rrm` has config, advanced confirm logic, blacklists, and many flags.
+
+
 ## How to install:
 ### Cloning and change directory to repository
 ```bash
