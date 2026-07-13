@@ -27,8 +27,18 @@ fn check_file(
     file: &PathBuf,
 ) -> Option<PathBuf> {
     let file = file.clone();
-    let include_files: Vec<&str> = launch_config.include.split(',').collect();
-    let exclude_files: Vec<&str> = launch_config.exclude.split(',').collect();
+    let include_files: Vec<&str> = launch_config
+        .include
+        .as_deref()
+        .unwrap_or_default()
+        .split(',')
+        .collect();
+    let exclude_files: Vec<&str> = launch_config
+        .exclude
+        .as_deref()
+        .unwrap_or_default()
+        .split(',')
+        .collect();
     let (blacklist, very_blacklist, confirm_list) = if let Some(lists) = &config_file.lists {
         let blacklist = lists.blacklist_files.clone();
         let very_blacklist = lists.very_blacklist_files.clone();

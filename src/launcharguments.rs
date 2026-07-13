@@ -16,9 +16,9 @@ pub struct LaunchConfig {
     pub confirm: bool,
 
     #[arg(short, long)]
-    pub include: String,
+    pub include: Option<String>,
     #[arg(short, long)]
-    pub exclude: String,
+    pub exclude: Option<String>,
 
     pub files_path: Vec<PathBuf>,
 }
