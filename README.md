@@ -1,3 +1,27 @@
 # rrm - Rust Remove 
-## This is remove utility written on rust which has many features.
-### Project currently in beta
+# Remove utility written on rust which has many features.
+## How to install:
+### Cloning and change directory to repository
+```
+```bash 
+git clone https://github.com/Username59138/rrm.git && cd rrm
+```
+
+
+### **Installing** with cargo 
+```bash
+cargo install --path .
+```
+
+## rrm/config.toml example:
+
+```toml
+[variables]
+allow_root_deletion = false
+confirm_deleting = true
+[lists]
+blacklist = ["/home/user/important_project"]
+```
+
+
+Project currently in beta
