@@ -1,4 +1,5 @@
 use crate::configfile::ConfigFile;
+use crate::configfile::Lists;
 use crate::configfile::Variables;
 use crate::input::get_yes_no;
 use crate::launcharguments::LaunchConfig;
@@ -40,23 +41,31 @@ fn check_file(
         .unwrap_or_default()
         .split(',')
         .collect();
-    let (blacklist, very_blacklist, confirm_list) = if let Some(lists) = &config_file.lists {
-        let blacklist = lists.blacklist_files.clone();
-        let very_blacklist = lists.very_blacklist_files.clone();
-        let confirm_list = lists.confirm_files.clone();
-        (blacklist, very_blacklist, confirm_list)
-    } else {
-        (None, None, None)
-    };
+    let confirm_files_arguments: Vec<&str> = launch_config
+        .confirm_files
+        .as_deref()
+        .unwrap_or_default()
+        .split(',')
+        .collect();
+    let (blacklist_files, very_blacklist_files, confirm_list_files) =
+        if let Some(lists) = &config_file.lists {
+            let blacklist_files = lists.blacklist_files.clone();
+            let very_blacklist_files = lists.very_blacklist_files.clone();
+            let confirm_files = lists.confirm_files.clone();
+            (blacklist_files, very_blacklist_files, confirm_files)
+        } else {
+            (None, None, None)
+        };
     let allow_root_deletion = if let Some(variables) = &config_file.variables {
         variables.allow_root_deletion.clone()
     } else {
         None
     };
 
-    if let Some(confirm_list) = &confirm_list
-        && confirm_list.contains(&file)
-        && !launch_config.no_files_confirm
+    if match confirm_list_files {
+        Some(lists) => lists.contains(&file),
+        _ => false,
+    } || confirm_files_arguments.contains(&file.to_str().unwrap_or_default())
     {
         println!(
             "Do you want to add {} to delete list? [Y/n]",
@@ -70,14 +79,14 @@ fn check_file(
         }
     }
 
-    if let Some(blacklist) = &blacklist
-        && blacklist.contains(&file)
+    if let Some(blacklist_files) = &blacklist_files
+        && blacklist_files.contains(&file)
         && !include_files.contains(&file.to_str().unwrap_or_default())
     {
         return None;
     }
-    if let Some(very_blacklist) = &very_blacklist
-        && very_blacklist.contains(&file)
+    if let Some(very_blacklist_files) = &very_blacklist_files
+        && very_blacklist_files.contains(&file)
     {
         return None;
     }

@@ -26,4 +26,4 @@ blacklist = ["/home/user/important_project"]
 ```
 
 
-Project currently in beta
+Project currently in alpha

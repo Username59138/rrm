@@ -19,6 +19,8 @@ pub struct LaunchConfig {
     pub include: Option<String>,
     #[arg(short, long)]
     pub exclude: Option<String>,
+    #[arg(long, conflicts_with = "no_files_confirm")]
+    pub confirm_files: Option<String>,
 
     pub files_path: Vec<PathBuf>,
 }
