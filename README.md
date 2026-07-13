@@ -2,8 +2,7 @@
 # Remove utility written on rust which has many features.
 ## How to install:
 ### Cloning and change directory to repository
-```
-```bash 
+```bash
 git clone https://github.com/Username59138/rrm.git && cd rrm
 ```
 
