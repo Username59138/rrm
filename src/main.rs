@@ -1,6 +1,6 @@
-use rrm::configfile::ConfigFile;
+use rrm::config_file::ConfigFile;
 use rrm::delete;
-use rrm::launcharguments::LaunchConfig;
+use rrm::launch_config::LaunchConfig;
 
 fn main() {
     let config = ConfigFile::new().unwrap();
