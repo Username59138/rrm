@@ -1,5 +1,4 @@
 use crate::configfile::ConfigFile;
-use crate::configfile::Lists;
 use crate::configfile::Variables;
 use crate::input::get_yes_no;
 use crate::launcharguments::LaunchConfig;
@@ -96,8 +95,10 @@ fn check_file(
         .unwrap_or_else(|| PathBuf::from("/"));
     if let Some(allow_root_deletion) = allow_root_deletion
         && !allow_root_deletion
-        && (file == root_dir || (file.parent() == Some(&root_dir)))
+        && (file == root_dir || file.parent() == Some(&root_dir))
     {
+        return None;
+    } else if file == root_dir || file.parent() == Some(&root_dir) {
         return None;
     };
     if exclude_files.contains(&file.to_str().unwrap_or_default()) {
