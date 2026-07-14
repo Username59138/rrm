@@ -16,7 +16,7 @@ cargo install --path .
 ```
 
 ## Config 
-'rrm' has 'rrm/config.toml' file which is configuration which you can change.
+`rrm` has `rrm/config.toml` file which is configuration which you can change.
 # rrm/config.toml example:
 
 ```toml
