@@ -26,7 +26,7 @@ pub struct ConfigFile {
 
 impl ConfigFile {
     pub fn new() -> Result<Self, Box<dyn Error>> {
-        let path = format!(
+        let path: PathBuf = PathBuf::from(format!(
             "{}/{}/{}",
             config_dir()
                 .unwrap_or_default()
@@ -34,8 +34,11 @@ impl ConfigFile {
                 .unwrap_or_default(),
             CONFIG_DIR,
             CONFIG_FILE
-        );
-        let content = fs::read_to_string(path)?;
+        ));
+        if !path.exists() {
+            fs::write(&path, String::new())?;
+        }
+        let content = fs::read_to_string(&path)?;
         let config: ConfigFile = toml::from_str(&content)?;
         Ok(config)
     }
