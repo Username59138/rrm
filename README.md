@@ -15,7 +15,9 @@ git clone https://github.com/Username59138/rrm.git && cd rrm
 cargo install --path .
 ```
 
-## rrm/config.toml example:
+## Config 
+'rrm' has 'rrm/config.toml' file which is configuration which you can change.
+# rrm/config.toml example:
 
 ```toml
 [variables]
@@ -23,7 +25,9 @@ allow_root_deletion = false
 confirm_deleting = true
 [lists]
 blacklist = ["/home/user/important_project"]
+very_blacklist = ["/home/user/very_important_project"]
+confirm_list = ["/home/user/project"]
 ```
 
 
-Project currently in alpha
+### Project currently in alpha
