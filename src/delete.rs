@@ -3,7 +3,6 @@ use crate::config_file::Variables;
 use crate::file_parser::check_file;
 use crate::input::get_yes_no;
 use crate::launch_config::LaunchConfig;
-use std::env;
 use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
@@ -30,7 +29,7 @@ fn prepare_files_to_delete(
     let mut files_to_delete: Vec<PathBuf> = Vec::new();
 
     for object in launch_config.files_path.clone() {
-        if let Some(file) = check_file(config_file, launch_config, &object)
+        if let Some(file) = check_file(config_file, launch_config, &object)?
             && !object.is_dir()
         {
             files_to_delete.push(file)
@@ -40,7 +39,7 @@ fn prepare_files_to_delete(
             for file in filles_in_dir {
                 let file = file?.path();
 
-                if let Some(file) = check_file(config_file, launch_config, &file) {
+                if let Some(file) = check_file(config_file, launch_config, &file)? {
                     files_to_delete.push(file);
                 } else {
                     save_directory = true;
