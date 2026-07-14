@@ -1,6 +1,7 @@
 use crate::config_file::ConfigFile;
 use crate::input::get_yes_no;
 use crate::launch_config::LaunchConfig;
+use shellexpand::tilde;
 use std::env;
 use std::error::Error;
 use std::path::{PathBuf, absolute};
@@ -23,7 +24,7 @@ pub fn check_file(
         .and_then(|path| path.ancestors().last().map(PathBuf::from))
         .unwrap_or_else(|| PathBuf::from("/"));
 
-    let file = absolute(file.clone())?;
+    let file = absolute(tilde(file.clone().to_str().unwrap_or_default()).to_string())?;
     let include_files = return_launch_config_files(launch_config.include.as_deref());
     let exclude_files = return_launch_config_files(launch_config.exclude.as_deref());
     let confirm_files_arguments =
@@ -82,8 +83,5 @@ pub fn check_file(
         return Ok(None);
     }
 
-    if launch_config.verbose {
-        println!("{} will be deleted", file.to_str().unwrap_or_default());
-    }
     Ok(Some(file))
 }

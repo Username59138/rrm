@@ -22,25 +22,31 @@ fn delete_any(paths: &[PathBuf], verbose: bool) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn prepare_files_to_delete(
+fn prepare_objects_to_delete(
+    objects: Vec<PathBuf>,
     config_file: &ConfigFile,
     launch_config: &LaunchConfig,
 ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut files_to_delete: Vec<PathBuf> = Vec::new();
 
-    for object in launch_config.files_path.clone() {
-        if let Some(file) = check_file(config_file, launch_config, &object)?
-            && !object.is_dir()
-        {
-            files_to_delete.push(file)
-        } else if object.is_dir() {
+    for object in objects {
+        if !object.is_dir() {
+            if let Some(file) = check_file(config_file, launch_config, &object)? {
+                files_to_delete.push(file)
+            }
+        } else {
             let mut save_directory = false;
             let filles_in_dir = object.read_dir()?;
             for file in filles_in_dir {
                 let file = file?.path();
 
                 if let Some(file) = check_file(config_file, launch_config, &file)? {
-                    files_to_delete.push(file);
+                    let checked_object =
+                        prepare_objects_to_delete(vec![file.clone()], config_file, launch_config)?;
+                    if !checked_object.contains(&file) {
+                        save_directory = true;
+                    }
+                    files_to_delete.extend_from_slice(&checked_object);
                 } else {
                     save_directory = true;
                 }
@@ -49,6 +55,26 @@ fn prepare_files_to_delete(
                 files_to_delete.push(object);
             }
         }
+    }
+    Ok(files_to_delete)
+}
+
+fn prepare_files_to_delete(
+    config_file: &ConfigFile,
+    launch_config: &LaunchConfig,
+) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    let mut files_to_delete: Vec<PathBuf> = Vec::new();
+
+    let prepared_files =
+        prepare_objects_to_delete(launch_config.files_path.clone(), config_file, launch_config)?;
+    files_to_delete.extend_from_slice(&prepared_files);
+    if launch_config.verbose {
+        files_to_delete.iter().for_each(|file| {
+            println!(
+                "File: {} will be deleted",
+                file.to_str().unwrap_or_default()
+            );
+        });
     }
     Ok(files_to_delete)
 }
