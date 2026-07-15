@@ -33,7 +33,7 @@ pub fn check_file(
     config_file: &ConfigFile,
     launch_config: &LaunchConfig,
     file: &PathBuf,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<(bool, bool), Box<dyn Error>> {
     let root_dir = env::current_dir()
         .ok()
         .and_then(|path| path.ancestors().last().map(PathBuf::from))
@@ -71,7 +71,7 @@ pub fn check_file(
         );
         let user_input = get_yes_no()?;
         if !user_input {
-            return Ok(false);
+            return Ok((false, false));
         }
     }
 
@@ -79,25 +79,25 @@ pub fn check_file(
         && into_absolute(blacklist_files)?.contains(&file)
         && !include_files.contains(&file)
     {
-        return Ok(false);
+        return Ok((false, false));
     }
     if let Some(very_blacklist_files) = &very_blacklist_files
         && (very_blacklist_files.contains(&file)
             || into_absolute(very_blacklist_files)?.contains(&file))
     {
-        return Ok(false);
+        return Ok((false, true));
     }
     if let Some(allow_root_deletion) = allow_root_deletion
         && !allow_root_deletion
         && (file == root_dir || file.parent() == Some(&root_dir))
     {
-        return Ok(false);
+        return Ok((false, true));
     } else if file == root_dir || file.parent() == Some(&root_dir) {
-        return Ok(false);
+        return Ok((false, true));
     };
     if into_absolute(&exclude_files)?.contains(&file) {
-        return Ok(false);
+        return Ok((false, false));
     }
 
-    Ok(true)
+    Ok((true, false))
 }

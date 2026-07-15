@@ -31,16 +31,21 @@ fn prepare_objects_to_delete(
 
     for object in objects {
         if !object.is_dir() {
-            if check_file(config_file, launch_config, &object)? {
+            if check_file(config_file, launch_config, &object)?.0 {
                 files_to_delete.push(object)
             }
         } else {
             let mut save_directory = false;
+            if !check_file(config_file, launch_config, &object)?.0
+                && check_file(config_file, launch_config, &object)?.1
+            {
+                continue;
+            }
             let filles_in_dir = object.read_dir()?;
             for file in filles_in_dir {
                 let file = file?.path();
 
-                if check_file(config_file, launch_config, &file)? {
+                if check_file(config_file, launch_config, &file)?.0 {
                     let checked_object =
                         prepare_objects_to_delete(vec![file.clone()], config_file, launch_config)?;
                     if !checked_object.contains(&file) {
@@ -51,7 +56,7 @@ fn prepare_objects_to_delete(
                     save_directory = true;
                 }
             }
-            if !save_directory && check_file(config_file, launch_config, &object)? {
+            if !save_directory && check_file(config_file, launch_config, &object)?.0 {
                 files_to_delete.push(object);
             }
         }
