@@ -24,9 +24,9 @@ cargo install --path .
 allow_root_deletion = false
 confirm_deleting = true
 [lists]
-blacklist = ["/home/user/important_project"]
-very_blacklist = ["/home/user/very_important_project"]
-confirm_list = ["/home/user/project"]
+blacklist_files = ["/home/user/important_project"]
+very_blacklist_files = ["/home/user/very_important_project"]
+confirm_list_files = ["/home/user/project"]
 ```
 
 

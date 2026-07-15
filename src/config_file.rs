@@ -26,19 +26,26 @@ pub struct ConfigFile {
 
 impl ConfigFile {
     pub fn new() -> Result<Self, Box<dyn Error>> {
-        let path: PathBuf = PathBuf::from(format!(
-            "{}/{}/{}",
+        let path = PathBuf::from(format!(
+            "{}/{}",
             config_dir()
                 .unwrap_or_default()
                 .to_str()
                 .unwrap_or_default(),
-            CONFIG_DIR,
+            CONFIG_DIR
+        ));
+        let path_file = PathBuf::from(format!(
+            "{}/{}",
+            path.to_str().unwrap_or_default(),
             CONFIG_FILE
         ));
-        if !path.exists() {
-            fs::write(&path, String::new())?;
+        if !path_file.exists() {
+            if !path.exists() {
+                fs::create_dir(&path)?;
+            }
+            fs::write(&path_file, String::new())?;
         }
-        let content = fs::read_to_string(&path)?;
+        let content = fs::read_to_string(&path_file)?;
         let config: ConfigFile = toml::from_str(&content)?;
         Ok(config)
     }
