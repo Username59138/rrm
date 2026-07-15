@@ -92,7 +92,9 @@ pub fn check_file(
         && (file == root_dir || file.parent() == Some(&root_dir))
     {
         return Ok((false, true));
-    } else if file == root_dir || file.parent() == Some(&root_dir) {
+    } else if let None = allow_root_deletion
+        && (file == root_dir || file.parent() == Some(&root_dir))
+    {
         return Ok((false, true));
     };
     if into_absolute(&exclude_files)?.contains(&file) {
