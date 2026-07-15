@@ -31,3 +31,4 @@ confirm_list_files = ["/home/user/project"]
 
 
 ### Project currently in alpha
+### No vibecode/ai code was used
